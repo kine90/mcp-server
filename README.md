@@ -440,3 +440,34 @@ Key practices we follow and recommend:
 - Use secure networks in production deployments
 
 ---
+
+## 🚧 Roadmap / Improvements
+
+- Security & Hardening
+  - Add output redaction middleware for sensitive fields (psk, password, secret, token, apiKey)
+  - Safe mode default: block create/update/delete unless `ALLOW_MUTATIONS=true` and `confirm=true`
+  - Gate high‑risk tools (e.g., administered_*) behind `ENABLE_ADMINISTERED_TOOLS=true`
+  - Allow/Deny lists to restrict dynamic executor surface: `ALLOW_SECTIONS/METHODS`, `DENY_SECTIONS/METHODS`
+  - Add rate/size guards (`MAX_PER_PAGE`, `MAX_TIMESPAN`, `MAX_PARALLEL_CALLS`) to prevent resource exhaustion
+  - Container hardening: run as non‑root, drop Linux capabilities, consider read‑only FS in production
+  - If exposed remotely: enforce TLS, IP allowlists, and gateway authentication
+
+- Coverage & SDK Parity
+  - Track OpenAPI v1.61+ additions (Zigbee IoT, Sensor Gateway, Spaces) as wrappers when SDK support lands
+  - Expand convenience wrappers (MG eSIM, Insight, SM, Webhooks) while keeping dynamic executor
+  - Keep `meraki` SDK current and add CI checks for method presence
+
+- Testing & Quality
+  - Unit tests for wrappers and semantic search matching
+  - Integration smoke tests (read‑only) with environment‑gated live checks
+  - CI pipeline: lint, type‑check, test matrix (local/Docker)
+
+- Observability & Ops
+  - Optional sanitized audit logs (tool name, section.method, status, latency)
+  - Health/readiness endpoints and structured logs for container platforms
+
+- DX & Distribution
+  - Package as a DXT for Claude Desktop one‑click install (`dxt pack`)
+  - Example configs and scripts for local dev, Docker, and Smithery
+
+Reference security guidance: Model Context Protocol Security — Top 10 and Hardening Guide: https://modelcontextprotocol-security.io
