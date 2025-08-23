@@ -1,7 +1,7 @@
 [project]
-name = "selent-mcp"
+name = "meraki-mcp"
 version = "0.1.0"
-description = "Selent MCP Server for Meraki API"
+description = "Meraki MCP Server for Cisco Meraki Dashboard API"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
