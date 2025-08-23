@@ -1,6 +1,6 @@
-# Selent MCP
+# Meraki MCP
 
-A powerful Model Context Protocol (MCP) server that provides dynamic access to the entire Meraki Dashboard API plus advanced compliance and security auditing capabilities. Instead of creating hundreds of individual tools, Selent MCP uses intelligent discovery to find and execute any Meraki API endpoint on demand.
+A powerful Model Context Protocol (MCP) server that provides dynamic access to the entire Meraki Dashboard API plus advanced compliance and security auditing capabilities. Instead of creating hundreds of individual tools, Meraki MCP uses intelligent discovery to find and execute any Meraki API endpoint on demand.
 
 ## 🚀 Features
 
@@ -36,6 +36,52 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 - **Configuration Drift Detection**: Identify inconsistencies across networks
 
 > **Note**: Advanced features (backup/restore, compliance auditing) require a **Selent API key**. Contact [Selent](https://selent.ai) to obtain access.
+
+## ⚡ Quick Start (Local via FastMCP)
+
+### 1) Prerequisites
+
+- Python 3.12+
+- A Meraki Dashboard API key
+
+### 2) Install and run
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -e .
+
+export MERAKI_API_KEY="your_meraki_api_key_here"
+
+# FastMCP entrypoint (from repo root)
+fastmcp run meraki_mcp/main.py:mcp
+```
+
+### 3) Connect a client
+
+- Claude Desktop: Settings → Developer → Edit Config, add a server pointing to the command above.
+
+Example `claude_desktop_config.json` entry:
+
+```json
+{
+  "mcpServers": {
+    "Meraki MCP": {
+      "command": "fastmcp",
+      "args": [
+        "run",
+        "/Users/you/path/to/repo/meraki_mcp/main.py:mcp"
+      ],
+      "env": {
+        "MERAKI_API_KEY": "your_meraki_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Note: Ensure your Meraki API key belongs to a licensed organization for network-level operations.
 
 ## 🐳 Quick Start with Docker
 
@@ -77,7 +123,7 @@ export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for backup/restore
 docker-compose up -d
 ```
 
-### 3. Configure Claude Desktop
+### 3. Configure Claude Desktop (Docker)
 
 Update your Claude Desktop configuration file:
 
@@ -86,7 +132,7 @@ Update your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "Selent MCP": {
+    "Meraki MCP": {
       "command": "docker",
       "args": [
         "run",
@@ -97,7 +143,7 @@ Update your Claude Desktop configuration file:
         "MERAKI_API_KEY=your_meraki_api_key_here",
         "-e",
         "SELENT_API_KEY=your_selent_api_key_here",
-        "selentai/selent-mcp:latest"
+        "selent-mcp:latest"
       ]
     }
   }
@@ -216,9 +262,35 @@ docker-compose up -d --build
 
 ### **Core API Tools**
 
-- `search_meraki_api_endpoints` - Find API endpoints using natural language
-- `execute_meraki_api_endpoint` - Execute any Meraki API call
-- `get_meraki_endpoint_parameters` - Get parameter requirements for endpoints
+- `search_meraki_api_endpoints(query)`
+  - Natural-language search over the Meraki SDK (e.g., "wireless ssids", "mx firewall rules")
+- `get_meraki_endpoint_parameters(section, method)`
+  - Introspect required/optional params for any endpoint
+- `execute_meraki_api_endpoint(section, method, serial?, portId?, networkId?, organizationId?, kwargs='{}')`
+  - Call any Meraki API directly; pass extra params as JSON in `kwargs`
+
+### **Convenience Tools**
+
+- Organizations and networks
+  - `get_organizations`, `get_organization_networks(organization_id)`, `get_organization_devices(organization_id)`
+- Devices and switch
+  - `get_device_status(serial)`, `get_switch_port_config(serial, port_id)`
+- Network
+  - `get_network_clients(network_id, timespan?)`, `get_network_settings(network_id)`, `get_network_topology(network_id)`
+- Security (MX)
+  - `get_firewall_rules(network_id)`
+- Administered (user/keys)
+  - `administered_get_identity()`, `administered_list_api_keys()`, `administered_generate_api_key()`, `administered_revoke_api_key(suffix)`
+- Integrations
+  - `enable_xdr_on_networks(organization_id, network_ids_json)`, `disable_xdr_on_networks(organization_id, network_ids_json)`
+- Wireless
+  - `update_network_wireless_scanning_settings(network_id, settings_json)`
+  - `update_ssid_l7_firewall_rules(network_id, number, rules_json)`
+- Sensor/Spaces (SDK dependent)
+  - `get_sensor_gateway_latest_connections(organization_id)`
+  - `get_spaces_integration_status(organization_id)`
+
+Tip: You can always fall back to the dynamic trio: search → parameters → execute.
 
 ## 💡 Key Benefits
 

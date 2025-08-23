@@ -4,14 +4,14 @@ from typing import Any, Dict, Optional, Type
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel
 
-from selent_mcp.schemas import (
+from meraki_mcp.schemas import (
     BackupResponse,
     BackupStatusResponse,
     RestoreResponse,
     RestoreStatusResponse,
     SelentError,
 )
-from selent_mcp.services.selent_service_client import SelentServiceClient
+from meraki_mcp.services.selent_service_client import SelentServiceClient
 
 logger = logging.getLogger(__name__)
 

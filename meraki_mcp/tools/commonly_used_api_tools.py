@@ -4,8 +4,8 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 
-from selent_mcp.services.meraki_client import MerakiClient
-from selent_mcp.settings import ApiSettings
+from meraki_mcp.services.meraki_client import MerakiClient
+from meraki_mcp.settings import ApiSettings
 
 logger = logging.getLogger(__name__)
 

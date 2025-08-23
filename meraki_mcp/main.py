@@ -2,13 +2,13 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
-from selent_mcp.services.meraki_client import MerakiClient
-from selent_mcp.services.selent_service_client import SelentServiceClient
-from selent_mcp.settings import ApiSettings
-from selent_mcp.tools.commonly_used_api_tools import CommonlyUsedMerakiApiTools
-from selent_mcp.tools.meraki_api_tools import MerakiApiTools
-from selent_mcp.tools.meraki_complex_api_tools import MerakiComplexApiTools
-from selent_mcp.tools.selent_api_tools import SelentApiTools
+from meraki_mcp.services.meraki_client import MerakiClient
+from meraki_mcp.services.selent_service_client import SelentServiceClient
+from meraki_mcp.settings import ApiSettings
+from meraki_mcp.tools.commonly_used_api_tools import CommonlyUsedMerakiApiTools
+from meraki_mcp.tools.meraki_api_tools import MerakiApiTools
+from meraki_mcp.tools.meraki_complex_api_tools import MerakiComplexApiTools
+from meraki_mcp.tools.selent_api_tools import SelentApiTools
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
