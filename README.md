@@ -308,6 +308,62 @@ docker-compose up -d --build
 
 Tip: You can always fall back to the dynamic trio: search → parameters → execute.
 
+## 🧩 Install in Claude Desktop
+
+There are two ways to install and use this MCP server in Claude Desktop:
+
+### Option A — Desktop Extensions (DXT) [Recommended]
+
+Claude Desktop supports one‑click local MCP servers via Desktop Extensions (DXT). You can install from the directory or install a custom extension (.dxt file).
+
+Steps (install an existing extension):
+- Open Claude Desktop → Settings → Extensions → Browse extensions → Install
+- Configure required settings (e.g., add `MERAKI_API_KEY`)
+
+Steps (install a custom .dxt you built):
+- Open Claude Desktop → Settings → Extensions → Advanced settings → Extension Developer
+- Click “Install Extension…” and select your `extension.dxt`
+
+DXT packaging overview for this server:
+- Create a `manifest.json` following the DXT MANIFEST spec
+- Set the server entry to launch FastMCP with this entrypoint: `fastmcp run meraki_mcp/main.py:mcp`
+- Provide a sensitive config field for `MERAKI_API_KEY`
+- Bundle Python deps (e.g., `server/lib/` or a vendored venv) so it runs on end‑user machines
+- Build the package: `dxt pack` → produces `extension.dxt`
+
+References:
+- Getting started with local MCP servers and Desktop Extensions: [Anthropic Help Center](https://support.anthropic.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop)
+- DXT repo and manifest details: [anthropics/dxt](https://github.com/anthropics/dxt)
+
+### Option B — Local dev config (no DXT)
+
+If you prefer not to build a DXT yet, point Claude Desktop to your local server command:
+
+1) Ensure the server runs locally (see “Quick Start (Local via FastMCP)”).
+
+2) In Claude Desktop, add a custom MCP server (developer config) pointing to:
+
+```json
+{
+  "mcpServers": {
+    "Meraki MCP": {
+      "command": "fastmcp",
+      "args": [
+        "run",
+        "/absolute/path/to/repo/meraki_mcp/main.py:mcp"
+      ],
+      "env": {
+        "MERAKI_API_KEY": "your_meraki_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Troubleshooting:
+- If tools don’t appear, restart Claude Desktop after adding the server
+- For Desktop Extensions specifics (enabling/disabling, org policies), see the help center article linked above
+
 ## ☁️ Deploy on Smithery
 
 Deploy this MCP server to Smithery.ai so it can be managed and shared from the cloud.
@@ -364,7 +420,7 @@ If you choose Docker, Smithery can build from the included `Dockerfile` (which s
 | Variable              | Required | Description                                                   |
 | --------------------- | -------- | ------------------------------------------------------------- |
 | `MERAKI_API_KEY`      | Yes      | Your Meraki Dashboard API key                                 |
-| `SELENT_API_KEY`      | Optional | Your Selent API key (required for advanced features)          |
+ 
 
 ### **Security Best Practices**
 
