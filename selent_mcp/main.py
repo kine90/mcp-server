@@ -34,4 +34,24 @@ selent_api_tools = SelentApiTools(
 )
 
 if __name__ == "__main__":
+    # Log Meraki SDK version and available top-level sections for visibility
+    try:
+        dashboard = meraki_client.get_dashboard()
+        try:
+            import meraki as _meraki
+
+            logger.info(f"Meraki SDK version: {_meraki.__version__}")
+        except Exception:
+            pass
+
+        sections = [
+            attr
+            for attr in dir(dashboard)
+            if not attr.startswith("_")
+            and hasattr(getattr(dashboard, attr), "__class__")
+            and "api" in str(type(getattr(dashboard, attr))).lower()
+        ]
+        logger.info(f"Meraki API sections discovered: {sorted(sections)[:20]}")
+    except Exception as e:
+        logger.warning(f"Unable to enumerate Meraki API sections at startup: {e}")
     mcp.run()
