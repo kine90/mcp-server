@@ -507,6 +507,19 @@ class CommonlyUsedMerakiApiTools:
             Calls: GET /organizations/{organizationId}/spaces/integrate/status
             """
             try:
+                if not hasattr(
+                    self.dashboard.organizations,
+                    "getOrganizationSpacesIntegrateStatus",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "getOrganizationSpacesIntegrateStatus is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package to a version supporting Spaces",
+                            "organization_id": organization_id,
+                        },
+                        indent=2,
+                    )
                 status = self.dashboard.organizations.getOrganizationSpacesIntegrateStatus(
                     organizationId=organization_id
                 )
@@ -537,6 +550,19 @@ class CommonlyUsedMerakiApiTools:
             Calls: GET /organizations/{organizationId}/sensor/gateways/connections/latest
             """
             try:
+                if not hasattr(
+                    self.dashboard.sensor,
+                    "getOrganizationSensorGatewaysConnectionsLatest",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "getOrganizationSensorGatewaysConnectionsLatest is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package to a version supporting Sensor Gateway latest connections",
+                            "organization_id": organization_id,
+                        },
+                        indent=2,
+                    )
                 latest = (
                     self.dashboard.sensor.getOrganizationSensorGatewaysConnectionsLatest(
                         organizationId=organization_id
@@ -671,12 +697,26 @@ class CommonlyUsedMerakiApiTools:
             """
             try:
                 rules = json.loads(rules_json) if rules_json else {}
-                response = self.dashboard.wireless.updateNetworkWirelessSsidsL7FirewallRules(
+                if not hasattr(
+                    self.dashboard.wireless,
+                    "updateNetworkWirelessSsidFirewallL7FirewallRules",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "updateNetworkWirelessSsidFirewallL7FirewallRules is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package or use dynamic executor",
+                            "network_id": network_id,
+                            "number": number,
+                        },
+                        indent=2,
+                    )
+                response = self.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules(
                     networkId=network_id, number=number, **rules
                 )
                 return json.dumps(
                     {
-                        "method": "updateNetworkWirelessSsidsL7FirewallRules",
+                        "method": "updateNetworkWirelessSsidFirewallL7FirewallRules",
                         "network_id": network_id,
                         "number": number,
                         "request": rules,
