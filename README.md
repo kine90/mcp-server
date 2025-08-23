@@ -308,6 +308,42 @@ docker-compose up -d --build
 
 Tip: You can always fall back to the dynamic trio: search → parameters → execute.
 
+## ☁️ Deploy on Smithery
+
+Deploy this MCP server to Smithery.ai so it can be managed and shared from the cloud.
+
+### 1) Prerequisites
+
+- Smithery account with GitHub access
+- A Meraki Dashboard API key
+
+### 2) Create a new MCP service
+
+1. In Smithery, create a new MCP service and connect this GitHub repository.
+2. Choose a Python 3.12 runtime (or enable Docker build using the included Dockerfile).
+3. Build steps (Python runtime):
+   - `pip install -U pip`
+   - `pip install -e .`
+4. Start command:
+   - Command: `fastmcp`
+   - Args: `run`, `meraki_mcp/main.py:mcp`
+5. Environment variables:
+   - `MERAKI_API_KEY`: your Meraki Dashboard API key
+
+If you choose Docker, Smithery can build from the included `Dockerfile` (which sets the container CMD to start the server). You can still override the command to `fastmcp run meraki_mcp/main.py:mcp` if preferred.
+
+### 3) Deploy and test
+
+1. Click Deploy and wait for the build to finish.
+2. Open the service logs to confirm startup (you should see the Meraki SDK version and discovered sections).
+3. Use Smithery’s “Copy client snippet” to add the server to your MCP client (e.g., Claude Desktop) and test with a basic query like “What Meraki organizations do I have access to?”.
+
+### Troubleshooting
+
+- Ensure `MERAKI_API_KEY` is set for the service.
+- If wireless/network calls fail with 403, verify your org is licensed.
+- If running via Python runtime and you see “Already running asyncio in this thread”, make sure only one server process is running.
+
 ## 💡 Key Benefits
 
 ✅ **No Manual Tool Creation**: Access 400+ endpoints without writing individual tools  
