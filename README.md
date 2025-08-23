@@ -35,7 +35,7 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 - **Performance Analytics**: Bottleneck identification and optimization recommendations
 - **Configuration Drift Detection**: Identify inconsistencies across networks
 
-> **Note**: This server focuses on Cisco Meraki Dashboard API access. Selent-specific features have been removed.
+> Acknowledgement: This project was originally inspired by earlier work that included Selent-specific features. Those integrations have been removed; thanks to the Selent team for prior inspiration.
 
 ## ⚡ Quick Start (Local via FastMCP)
 
@@ -118,13 +118,12 @@ Note: Ensure your Meraki API key belongs to a licensed organization for network-
 ```bash
 # Set your API keys
 export MERAKI_API_KEY="your_meraki_api_key_here"
-export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for advanced features
 
 # Run directly from Docker Hub (always pulls latest)
 docker run \
   --pull=always \
   -e MERAKI_API_KEY=$MERAKI_API_KEY \
-  -i --rm selentai/selent-mcp:latest
+  -i --rm meraki-mcp:latest
 ```
 
 **Option B: Build from Source**
@@ -132,7 +131,7 @@ docker run \
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd selent-mcp
+cd meraki-mcp-server
 
 # Set your API key
 export MERAKI_API_KEY="your_meraki_api_key_here"
@@ -159,7 +158,7 @@ Update your Claude Desktop configuration file:
         "--pull=always",
         "-e",
         "MERAKI_API_KEY=your_meraki_api_key_here",
-        "selent-mcp:latest"
+        "meraki-mcp:latest"
       ]
     }
   }
@@ -178,11 +177,8 @@ Once Claude Desktop restarts, test your setup:
 # Test basic API access
 "What Meraki organizations do I have access to?"
 
-# Test compliance tools (requires Selent API key)
-"What compliance types are available?"
-
-# Test a compliance scan (requires Selent API key)
-"Run a PCI compliance test"
+# Example: search an endpoint
+"Find wireless SSIDs for a network"
 ```
 
 The `--pull=always` flag ensures you automatically get the latest features and security updates without manual intervention.
@@ -259,10 +255,10 @@ The `--pull=always` flag ensures you automatically get the latest features and s
 
 ```bash
 # Check status
-docker ps --filter name=selent-mcp-server
+docker ps --filter name=meraki-mcp-server
 
 # View logs
-docker logs -f selent-mcp-server
+docker logs -f meraki-mcp-server
 
 # Restart
 docker-compose restart
