@@ -35,7 +35,7 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 - **Performance Analytics**: Bottleneck identification and optimization recommendations
 - **Configuration Drift Detection**: Identify inconsistencies across networks
 
-> **Note**: Advanced features (backup/restore, compliance auditing) require a **Selent API key**. Contact [Selent](https://selent.ai) to obtain access.
+> **Note**: This server focuses on Cisco Meraki Dashboard API access. Selent-specific features have been removed.
 
 ## ⚡ Quick Start (Local via FastMCP)
 
@@ -89,7 +89,7 @@ Note: Ensure your Meraki API key belongs to a licensed organization for network-
 
 - Docker installed and running
 - Meraki Dashboard API key ([Get one here](https://documentation.meraki.com/General_Administration/Other_Topics/Cisco_Meraki_Dashboard_API))
-- Selent API key (optional, required for advanced features - contact [Selent](https://selent.ai))
+ 
 
 ### 2. Deploy the Server
 
@@ -104,7 +104,6 @@ export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for advanced featu
 docker run \
   --pull=always \
   -e MERAKI_API_KEY=$MERAKI_API_KEY \
-  -e SELENT_API_KEY=$SELENT_API_KEY \
   -i --rm selentai/selent-mcp:latest
 ```
 
@@ -115,9 +114,8 @@ docker run \
 git clone <repository-url>
 cd selent-mcp
 
-# Set your API keys
+# Set your API key
 export MERAKI_API_KEY="your_meraki_api_key_here"
-export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for backup/restore
 
 # Start the server
 docker-compose up -d
@@ -141,8 +139,6 @@ Update your Claude Desktop configuration file:
         "--pull=always",
         "-e",
         "MERAKI_API_KEY=your_meraki_api_key_here",
-        "-e",
-        "SELENT_API_KEY=your_selent_api_key_here",
         "selent-mcp:latest"
       ]
     }

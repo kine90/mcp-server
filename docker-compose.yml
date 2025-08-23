@@ -7,8 +7,6 @@ services:
     container_name: selent-mcp-server
     environment:
       - MERAKI_API_KEY=${MERAKI_API_KEY}
-      - SELENT_API_KEY=${SELENT_API_KEY}
-      - SELENT_API_BASE_URL=${SELENT_API_BASE_URL:-https://backend.selent.ai}
     stdin_open: true
     tty: true
     restart: unless-stopped

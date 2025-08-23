@@ -3,23 +3,18 @@ import logging
 from mcp.server.fastmcp import FastMCP
 
 from meraki_mcp.services.meraki_client import MerakiClient
-from meraki_mcp.services.selent_service_client import SelentServiceClient
 from meraki_mcp.settings import ApiSettings
 from meraki_mcp.tools.commonly_used_api_tools import CommonlyUsedMerakiApiTools
 from meraki_mcp.tools.meraki_api_tools import MerakiApiTools
 from meraki_mcp.tools.meraki_complex_api_tools import MerakiComplexApiTools
-from meraki_mcp.tools.selent_api_tools import SelentApiTools
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 env = ApiSettings()
-mcp: FastMCP = FastMCP("Selent MCP")
+mcp: FastMCP = FastMCP("Meraki MCP")
 
 meraki_client = MerakiClient(api_key=env.MERAKI_API_KEY)
-selent_client = SelentServiceClient(
-    base_url=env.SELENT_API_BASE_URL, api_key=env.SELENT_API_KEY
-)
 
 meraki_api_tools = MerakiApiTools(mcp, meraki_client, enabled=bool(env.MERAKI_API_KEY))
 meraki_complex_api_tools = MerakiComplexApiTools(
@@ -29,9 +24,6 @@ commonly_used_meraki_api_tools = CommonlyUsedMerakiApiTools(
     mcp, meraki_client, enabled=bool(env.MERAKI_API_KEY)
 )
 
-selent_api_tools = SelentApiTools(
-    mcp=mcp, selent_client=selent_client, enabled=bool(env.SELENT_API_KEY)
-)
 
 if __name__ == "__main__":
     # Log Meraki SDK version and available top-level sections for visibility

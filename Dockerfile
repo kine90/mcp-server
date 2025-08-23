@@ -19,8 +19,7 @@ RUN uv sync --frozen
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-ARG SELENT_API_BASE_URL=https://backend.selent.ai
-ENV SELENT_API_BASE_URL=${SELENT_API_BASE_URL}
+# Selent integration removed
 
 EXPOSE 8000
 

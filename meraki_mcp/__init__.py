@@ -1,1 +1,1 @@
-"""Selent MCP package for Meraki Dashboard API integration."""
+"""Meraki MCP package for Meraki Dashboard API integration."""
