@@ -411,3 +411,322 @@ class CommonlyUsedMerakiApiTools:
                     },
                     indent=2,
                 )
+
+        # Administered identity and API keys wrappers (OAuth-compatible endpoints)
+
+        @self.mcp.tool()
+        def administered_get_identity() -> str:
+            """
+            Returns the identity of the current user.
+
+            Calls: GET /administered/identities/me
+            """
+            try:
+                identity = self.dashboard.administered.getAdministeredIdentitiesMe()
+                return json.dumps(
+                    {"method": "getAdministeredIdentitiesMe", "identity": identity},
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to get administered identity: {e}")
+                return json.dumps({"error": "API call failed", "message": str(e)}, indent=2)
+
+        @self.mcp.tool()
+        def administered_list_api_keys() -> str:
+            """
+            List non-sensitive metadata for API keys belonging to the current user.
+
+            Calls: GET /administered/identities/me/api/keys
+            """
+            try:
+                keys = self.dashboard.administered.getAdministeredIdentitiesMeApiKeys()
+                return json.dumps(
+                    {"method": "getAdministeredIdentitiesMeApiKeys", "keys": keys},
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to list administered API keys: {e}")
+                return json.dumps({"error": "API call failed", "message": str(e)}, indent=2)
+
+        @self.mcp.tool()
+        def administered_generate_api_key() -> str:
+            """
+            Generate a new API key for the current user.
+
+            Calls: POST /administered/identities/me/api/keys/generate
+            """
+            try:
+                response = self.dashboard.administered.generateAdministeredIdentitiesMeApiKeys()
+                return json.dumps(
+                    {
+                        "method": "generateAdministeredIdentitiesMeApiKeys",
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to generate administered API key: {e}")
+                return json.dumps({"error": "API call failed", "message": str(e)}, indent=2)
+
+        @self.mcp.tool()
+        def administered_revoke_api_key(suffix: str) -> str:
+            """
+            Revoke an API key by its last four characters.
+
+            Args:
+                suffix: Last four characters of the API key to revoke.
+
+            Calls: POST /administered/identities/me/api/keys/{suffix}/revoke
+            """
+            try:
+                response = self.dashboard.administered.revokeAdministeredIdentitiesMeApiKeys(
+                    suffix=suffix
+                )
+                return json.dumps(
+                    {
+                        "method": "revokeAdministeredIdentitiesMeApiKeys",
+                        "suffix": suffix,
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to revoke administered API key: {e}")
+                return json.dumps(
+                    {"error": "API call failed", "message": str(e), "suffix": suffix},
+                    indent=2,
+                )
+
+        # Spaces and Sensor Gateway convenience wrappers
+
+        @self.mcp.tool()
+        def get_spaces_integration_status(organization_id: str) -> str:
+            """
+            Get the status of the Spaces integration in Meraki for an organization.
+
+            Calls: GET /organizations/{organizationId}/spaces/integrate/status
+            """
+            try:
+                if not hasattr(
+                    self.dashboard.organizations,
+                    "getOrganizationSpacesIntegrateStatus",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "getOrganizationSpacesIntegrateStatus is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package to a version supporting Spaces",
+                            "organization_id": organization_id,
+                        },
+                        indent=2,
+                    )
+                status = self.dashboard.organizations.getOrganizationSpacesIntegrateStatus(
+                    organizationId=organization_id
+                )
+                return json.dumps(
+                    {
+                        "method": "getOrganizationSpacesIntegrateStatus",
+                        "organization_id": organization_id,
+                        "status": status,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to get Spaces integration status: {e}")
+                return json.dumps(
+                    {
+                        "error": "API call failed",
+                        "message": str(e),
+                        "organization_id": organization_id,
+                    },
+                    indent=2,
+                )
+
+        @self.mcp.tool()
+        def get_sensor_gateway_latest_connections(organization_id: str) -> str:
+            """
+            Returns latest sensor-gateway connectivity data for an organization.
+
+            Calls: GET /organizations/{organizationId}/sensor/gateways/connections/latest
+            """
+            try:
+                if not hasattr(
+                    self.dashboard.sensor,
+                    "getOrganizationSensorGatewaysConnectionsLatest",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "getOrganizationSensorGatewaysConnectionsLatest is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package to a version supporting Sensor Gateway latest connections",
+                            "organization_id": organization_id,
+                        },
+                        indent=2,
+                    )
+                latest = (
+                    self.dashboard.sensor.getOrganizationSensorGatewaysConnectionsLatest(
+                        organizationId=organization_id
+                    )
+                )
+                return json.dumps(
+                    {
+                        "method": "getOrganizationSensorGatewaysConnectionsLatest",
+                        "organization_id": organization_id,
+                        "data": latest,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to get sensor gateway latest connections: {e}"
+                )
+                return json.dumps(
+                    {
+                        "error": "API call failed",
+                        "message": str(e),
+                        "organization_id": organization_id,
+                    },
+                    indent=2,
+                )
+
+        # XDR enable/disable and Wireless scanning/L7 firewall wrappers
+
+        @self.mcp.tool()
+        def enable_xdr_on_networks(organization_id: str, network_ids_json: str) -> str:
+            """
+            Enable XDR on specified networks in an organization.
+
+            Args:
+                organization_id: Organization ID
+                network_ids_json: JSON array of network IDs, e.g. '["N_1","N_2"]'
+            """
+            try:
+                network_ids = json.loads(network_ids_json) if network_ids_json else []
+                response = self.dashboard.organizations.enableOrganizationIntegrationsXdrNetworks(
+                    organizationId=organization_id, networkIds=network_ids
+                )
+                return json.dumps(
+                    {
+                        "method": "enableOrganizationIntegrationsXdrNetworks",
+                        "organization_id": organization_id,
+                        "network_ids": network_ids,
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to enable XDR: {e}")
+                return json.dumps(
+                    {
+                        "error": "API call failed",
+                        "message": str(e),
+                        "organization_id": organization_id,
+                    },
+                    indent=2,
+                )
+
+        @self.mcp.tool()
+        def disable_xdr_on_networks(organization_id: str, network_ids_json: str) -> str:
+            """
+            Disable XDR on specified networks in an organization.
+            """
+            try:
+                network_ids = json.loads(network_ids_json) if network_ids_json else []
+                response = self.dashboard.organizations.disableOrganizationIntegrationsXdrNetworks(
+                    organizationId=organization_id, networkIds=network_ids
+                )
+                return json.dumps(
+                    {
+                        "method": "disableOrganizationIntegrationsXdrNetworks",
+                        "organization_id": organization_id,
+                        "network_ids": network_ids,
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to disable XDR: {e}")
+                return json.dumps(
+                    {
+                        "error": "API call failed",
+                        "message": str(e),
+                        "organization_id": organization_id,
+                    },
+                    indent=2,
+                )
+
+        @self.mcp.tool()
+        def update_network_wireless_scanning_settings(network_id: str, settings_json: str) -> str:
+            """
+            Change scanning API settings for a network.
+
+            Args:
+                network_id: Network ID
+                settings_json: JSON object body per API
+            """
+            try:
+                settings = json.loads(settings_json) if settings_json else {}
+                response = self.dashboard.wireless.updateNetworkWirelessLocationScanning(
+                    networkId=network_id, **settings
+                )
+                return json.dumps(
+                    {
+                        "method": "updateNetworkWirelessLocationScanning",
+                        "network_id": network_id,
+                        "request": settings,
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to update wireless scanning settings: {e}")
+                return json.dumps(
+                    {"error": "API call failed", "message": str(e), "network_id": network_id},
+                    indent=2,
+                )
+
+        @self.mcp.tool()
+        def update_ssid_l7_firewall_rules(network_id: str, number: int, rules_json: str) -> str:
+            """
+            Update the L7 firewall rules of an SSID on an MR network.
+
+            Args:
+                network_id: Network ID
+                number: SSID number
+                rules_json: JSON body per API
+            """
+            try:
+                rules = json.loads(rules_json) if rules_json else {}
+                if not hasattr(
+                    self.dashboard.wireless,
+                    "updateNetworkWirelessSsidFirewallL7FirewallRules",
+                ):
+                    return json.dumps(
+                        {
+                            "error": "method_unavailable_in_sdk",
+                            "message": "updateNetworkWirelessSsidFirewallL7FirewallRules is not available in the installed meraki SDK",
+                            "sdk_version_hint": "Upgrade the 'meraki' Python package or use dynamic executor",
+                            "network_id": network_id,
+                            "number": number,
+                        },
+                        indent=2,
+                    )
+                response = self.dashboard.wireless.updateNetworkWirelessSsidFirewallL7FirewallRules(
+                    networkId=network_id, number=number, **rules
+                )
+                return json.dumps(
+                    {
+                        "method": "updateNetworkWirelessSsidFirewallL7FirewallRules",
+                        "network_id": network_id,
+                        "number": number,
+                        "request": rules,
+                        "response": response,
+                    },
+                    indent=2,
+                )
+            except Exception as e:
+                logger.error(f"Failed to update SSID L7 firewall rules: {e}")
+                return json.dumps(
+                    {"error": "API call failed", "message": str(e), "network_id": network_id, "number": number},
+                    indent=2,
+                )

@@ -43,11 +43,41 @@ class MerakiApiTools:
         elif section == "switch":
             keywords.extend(["ms", "switching", "port", "ports"])
         elif section == "wireless":
-            keywords.extend(["mr", "wifi", "wireless", "access"])
+            keywords.extend([
+                "mr",
+                "wifi",
+                "wireless",
+                "access",
+                # Newer wireless domains
+                "zigbee",
+                "iot",
+                "door",
+                "lock",
+            ])
         elif section == "camera":
             keywords.extend(["mv", "cameras", "video"])
         elif section == "sensor":
-            keywords.extend(["mt", "sensors", "environmental"])
+            keywords.extend([
+                "mt",
+                "sensors",
+                "environmental",
+                "gateway",
+                "gateways",
+            ])
+        elif section == "cellularGateway":
+            keywords.extend(["mg", "cellular", "gateway", "cellular-gateway"])
+        elif section == "sm":
+            keywords.extend(["sm", "systems", "manager", "mdm", "endpoint"])
+        elif section == "insight":
+            keywords.extend(["insight", "wan", "health", "application", "app"])
+        elif section == "webhooks":
+            keywords.extend(["webhook", "webhooks", "endpoints", "templates", "logs"])
+        elif section == "licensing":
+            keywords.extend(["licensing", "subscriptions", "entitlements", "license"])
+        elif section == "administered":
+            keywords.extend(["administered", "identity", "me", "api", "keys", "user"])
+        elif section == "spaces":
+            keywords.extend(["spaces", "cisco", "integration"]) 
         elif section == "networks":
             keywords.extend(["network", "net"])
         elif section == "devices":
