@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 
 from mcp.server.fastmcp import FastMCP
 
-from selent_mcp.services.meraki_client import MerakiClient
+from meraki_mcp.services.meraki_client import MerakiClient
 
 logger = logging.getLogger(__name__)
 

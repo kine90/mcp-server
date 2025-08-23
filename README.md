@@ -1,6 +1,6 @@
-# Selent MCP
+# Meraki MCP
 
-A powerful Model Context Protocol (MCP) server that provides dynamic access to the entire Meraki Dashboard API plus advanced compliance and security auditing capabilities. Instead of creating hundreds of individual tools, Selent MCP uses intelligent discovery to find and execute any Meraki API endpoint on demand.
+A powerful Model Context Protocol (MCP) server that provides dynamic access to the entire Meraki Dashboard API plus advanced compliance and security auditing capabilities. Instead of creating hundreds of individual tools, Meraki MCP uses intelligent discovery to find and execute any Meraki API endpoint on demand.
 
 ## 🚀 Features
 
@@ -35,7 +35,73 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 - **Performance Analytics**: Bottleneck identification and optimization recommendations
 - **Configuration Drift Detection**: Identify inconsistencies across networks
 
-> **Note**: Advanced features (backup/restore, compliance auditing) require a **Selent API key**. Contact [Selent](https://selent.ai) to obtain access.
+> Acknowledgement: This project was originally inspired by earlier work that included Selent-specific features. Those integrations have been removed; thanks to the Selent team for prior inspiration.
+
+## ⚡ Quick Start (Local via FastMCP)
+
+### 1) Prerequisites
+
+- Python 3.12+
+- A Meraki Dashboard API key
+
+### 2) Install and run
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
+pip install -e .
+
+export MERAKI_API_KEY="your_meraki_api_key_here"
+
+# FastMCP entrypoint (from repo root)
+fastmcp run meraki_mcp/main.py:mcp
+```
+
+FastMCP CLI quick reference:
+
+```
+# Linux/macOS (bash/zsh)
+export MERAKI_API_KEY="your_meraki_api_key_here"
+fastmcp run meraki_mcp/main.py:mcp
+
+# Windows PowerShell
+$env:MERAKI_API_KEY = "your_meraki_api_key_here"
+fastmcp run meraki_mcp/main.py:mcp
+
+# Alternative explicit object format (equivalent)
+fastmcp run meraki_mcp/main.py:mcp
+```
+
+Troubleshooting:
+- If you see "Already running asyncio in this thread", stop any previous instance and run again:
+  - macOS/Linux: `pkill -f "fastmcp run.*meraki_mcp/main.py" || true`
+  - Windows: Stop the prior terminal/process that’s running FastMCP
+
+### 3) Connect a client
+
+- Claude Desktop: Settings → Developer → Edit Config, add a server pointing to the command above.
+
+Example `claude_desktop_config.json` entry:
+
+```json
+{
+  "mcpServers": {
+    "Meraki MCP": {
+      "command": "fastmcp",
+      "args": [
+        "run",
+        "/Users/you/path/to/repo/meraki_mcp/main.py:mcp"
+      ],
+      "env": {
+        "MERAKI_API_KEY": "your_meraki_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Note: Ensure your Meraki API key belongs to a licensed organization for network-level operations.
 
 ## 🐳 Quick Start with Docker
 
@@ -43,7 +109,7 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 
 - Docker installed and running
 - Meraki Dashboard API key ([Get one here](https://documentation.meraki.com/General_Administration/Other_Topics/Cisco_Meraki_Dashboard_API))
-- Selent API key (optional, required for advanced features - contact [Selent](https://selent.ai))
+ 
 
 ### 2. Deploy the Server
 
@@ -52,14 +118,12 @@ A powerful Model Context Protocol (MCP) server that provides dynamic access to t
 ```bash
 # Set your API keys
 export MERAKI_API_KEY="your_meraki_api_key_here"
-export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for advanced features
 
 # Run directly from Docker Hub (always pulls latest)
 docker run \
   --pull=always \
   -e MERAKI_API_KEY=$MERAKI_API_KEY \
-  -e SELENT_API_KEY=$SELENT_API_KEY \
-  -i --rm selentai/selent-mcp:latest
+  -i --rm meraki-mcp:latest
 ```
 
 **Option B: Build from Source**
@@ -67,17 +131,16 @@ docker run \
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd selent-mcp
+cd meraki-mcp-server
 
-# Set your API keys
+# Set your API key
 export MERAKI_API_KEY="your_meraki_api_key_here"
-export SELENT_API_KEY="your_selent_api_key_here"  # Optional, for backup/restore
 
 # Start the server
 docker-compose up -d
 ```
 
-### 3. Configure Claude Desktop
+### 3. Configure Claude Desktop (Docker)
 
 Update your Claude Desktop configuration file:
 
@@ -86,7 +149,7 @@ Update your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "Selent MCP": {
+    "Meraki MCP": {
       "command": "docker",
       "args": [
         "run",
@@ -95,9 +158,7 @@ Update your Claude Desktop configuration file:
         "--pull=always",
         "-e",
         "MERAKI_API_KEY=your_meraki_api_key_here",
-        "-e",
-        "SELENT_API_KEY=your_selent_api_key_here",
-        "selentai/selent-mcp:latest"
+        "meraki-mcp:latest"
       ]
     }
   }
@@ -116,11 +177,8 @@ Once Claude Desktop restarts, test your setup:
 # Test basic API access
 "What Meraki organizations do I have access to?"
 
-# Test compliance tools (requires Selent API key)
-"What compliance types are available?"
-
-# Test a compliance scan (requires Selent API key)
-"Run a PCI compliance test"
+# Example: search an endpoint
+"Find wireless SSIDs for a network"
 ```
 
 The `--pull=always` flag ensures you automatically get the latest features and security updates without manual intervention.
@@ -197,10 +255,10 @@ The `--pull=always` flag ensures you automatically get the latest features and s
 
 ```bash
 # Check status
-docker ps --filter name=selent-mcp-server
+docker ps --filter name=meraki-mcp-server
 
 # View logs
-docker logs -f selent-mcp-server
+docker logs -f meraki-mcp-server
 
 # Restart
 docker-compose restart
@@ -216,9 +274,127 @@ docker-compose up -d --build
 
 ### **Core API Tools**
 
-- `search_meraki_api_endpoints` - Find API endpoints using natural language
-- `execute_meraki_api_endpoint` - Execute any Meraki API call
-- `get_meraki_endpoint_parameters` - Get parameter requirements for endpoints
+- `search_meraki_api_endpoints(query)`
+  - Natural-language search over the Meraki SDK (e.g., "wireless ssids", "mx firewall rules")
+- `get_meraki_endpoint_parameters(section, method)`
+  - Introspect required/optional params for any endpoint
+- `execute_meraki_api_endpoint(section, method, serial?, portId?, networkId?, organizationId?, kwargs='{}')`
+  - Call any Meraki API directly; pass extra params as JSON in `kwargs`
+
+### **Convenience Tools**
+
+- Organizations and networks
+  - `get_organizations`, `get_organization_networks(organization_id)`, `get_organization_devices(organization_id)`
+- Devices and switch
+  - `get_device_status(serial)`, `get_switch_port_config(serial, port_id)`
+- Network
+  - `get_network_clients(network_id, timespan?)`, `get_network_settings(network_id)`, `get_network_topology(network_id)`
+- Security (MX)
+  - `get_firewall_rules(network_id)`
+- Administered (user/keys)
+  - `administered_get_identity()`, `administered_list_api_keys()`, `administered_generate_api_key()`, `administered_revoke_api_key(suffix)`
+- Integrations
+  - `enable_xdr_on_networks(organization_id, network_ids_json)`, `disable_xdr_on_networks(organization_id, network_ids_json)`
+- Wireless
+  - `update_network_wireless_scanning_settings(network_id, settings_json)`
+  - `update_ssid_l7_firewall_rules(network_id, number, rules_json)`
+- Sensor/Spaces (SDK dependent)
+  - `get_sensor_gateway_latest_connections(organization_id)`
+  - `get_spaces_integration_status(organization_id)`
+
+Tip: You can always fall back to the dynamic trio: search → parameters → execute.
+
+## 🧩 Install in Claude Desktop
+
+There are two ways to install and use this MCP server in Claude Desktop:
+
+### Option A — Desktop Extensions (DXT) [Recommended]
+
+Claude Desktop supports one‑click local MCP servers via Desktop Extensions (DXT). You can install from the directory or install a custom extension (.dxt file).
+
+Steps (install an existing extension):
+- Open Claude Desktop → Settings → Extensions → Browse extensions → Install
+- Configure required settings (e.g., add `MERAKI_API_KEY`)
+
+Steps (install a custom .dxt you built):
+- Open Claude Desktop → Settings → Extensions → Advanced settings → Extension Developer
+- Click “Install Extension…” and select your `extension.dxt`
+
+DXT packaging overview for this server:
+- Create a `manifest.json` following the DXT MANIFEST spec
+- Set the server entry to launch FastMCP with this entrypoint: `fastmcp run meraki_mcp/main.py:mcp`
+- Provide a sensitive config field for `MERAKI_API_KEY`
+- Bundle Python deps (e.g., `server/lib/` or a vendored venv) so it runs on end‑user machines
+- Build the package: `dxt pack` → produces `extension.dxt`
+
+References:
+- Getting started with local MCP servers and Desktop Extensions: [Anthropic Help Center](https://support.anthropic.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop)
+- DXT repo and manifest details: [anthropics/dxt](https://github.com/anthropics/dxt)
+
+### Option B — Local dev config (no DXT)
+
+If you prefer not to build a DXT yet, point Claude Desktop to your local server command:
+
+1) Ensure the server runs locally (see “Quick Start (Local via FastMCP)”).
+
+2) In Claude Desktop, add a custom MCP server (developer config) pointing to:
+
+```json
+{
+  "mcpServers": {
+    "Meraki MCP": {
+      "command": "fastmcp",
+      "args": [
+        "run",
+        "/absolute/path/to/repo/meraki_mcp/main.py:mcp"
+      ],
+      "env": {
+        "MERAKI_API_KEY": "your_meraki_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Troubleshooting:
+- If tools don’t appear, restart Claude Desktop after adding the server
+- For Desktop Extensions specifics (enabling/disabling, org policies), see the help center article linked above
+
+## ☁️ Deploy on Smithery
+
+Deploy this MCP server to Smithery.ai so it can be managed and shared from the cloud.
+
+### 1) Prerequisites
+
+- Smithery account with GitHub access
+- A Meraki Dashboard API key
+
+### 2) Create a new MCP service
+
+1. In Smithery, create a new MCP service and connect this GitHub repository.
+2. Choose a Python 3.12 runtime (or enable Docker build using the included Dockerfile).
+3. Build steps (Python runtime):
+   - `pip install -U pip`
+   - `pip install -e .`
+4. Start command:
+   - Command: `fastmcp`
+   - Args: `run`, `meraki_mcp/main.py:mcp`
+5. Environment variables:
+   - `MERAKI_API_KEY`: your Meraki Dashboard API key
+
+If you choose Docker, Smithery can build from the included `Dockerfile` (which sets the container CMD to start the server). You can still override the command to `fastmcp run meraki_mcp/main.py:mcp` if preferred.
+
+### 3) Deploy and test
+
+1. Click Deploy and wait for the build to finish.
+2. Open the service logs to confirm startup (you should see the Meraki SDK version and discovered sections).
+3. Use Smithery’s “Copy client snippet” to add the server to your MCP client (e.g., Claude Desktop) and test with a basic query like “What Meraki organizations do I have access to?”.
+
+### Troubleshooting
+
+- Ensure `MERAKI_API_KEY` is set for the service.
+- If wireless/network calls fail with 403, verify your org is licensed.
+- If running via Python runtime and you see “Already running asyncio in this thread”, make sure only one server process is running.
 
 ## 💡 Key Benefits
 
@@ -240,7 +416,7 @@ docker-compose up -d --build
 | Variable              | Required | Description                                                   |
 | --------------------- | -------- | ------------------------------------------------------------- |
 | `MERAKI_API_KEY`      | Yes      | Your Meraki Dashboard API key                                 |
-| `SELENT_API_KEY`      | Optional | Your Selent API key (required for advanced features)          |
+ 
 
 ### **Security Best Practices**
 

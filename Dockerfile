@@ -10,7 +10,7 @@ RUN pip install uv
 COPY pyproject.toml uv.lock README.md ./
 
 # Copy source code first (needed for build)
-COPY selent_mcp/ ./selent_mcp/
+COPY meraki_mcp/ ./meraki_mcp/
 
 # Install dependencies
 RUN uv sync --frozen
@@ -19,10 +19,9 @@ RUN uv sync --frozen
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-ARG SELENT_API_BASE_URL=https://backend.selent.ai
-ENV SELENT_API_BASE_URL=${SELENT_API_BASE_URL}
+# Selent integration removed
 
 EXPOSE 8000
 
 # Run the MCP server
-CMD ["uv", "run", "python", "-m", "selent_mcp.main"] 
+CMD ["uv", "run", "python", "-m", "meraki_mcp.main"] 
