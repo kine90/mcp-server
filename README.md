@@ -411,6 +411,19 @@ If you choose Docker, Smithery can build from the included `Dockerfile` (which s
 
 ## 🔐 Security & Environment
 
+### MCP Security Guidance
+
+This project aligns with the Model Context Protocol Security guidance for building and operating MCP servers. See the MCP Security site for the Top 10 risks, hardening guidance, and operational best practices:
+
+- Model Context Protocol Security: https://modelcontextprotocol-security.io
+
+Key practices we follow and recommend:
+- Do not log sensitive data; keep request/response logging minimal and sanitized
+- Use environment variables for secrets (e.g., `MERAKI_API_KEY`), never commit secrets
+- Prefer read-only operations by default in production; explicitly confirm mutations
+- Restrict dynamic surface area (allow/deny lists for sections/methods) when needed
+- Run containers as non-root and drop unnecessary capabilities in production
+
 ### **Environment Variables**
 
 | Variable              | Required | Description                                                   |
