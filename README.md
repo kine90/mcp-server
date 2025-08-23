@@ -58,6 +58,26 @@ export MERAKI_API_KEY="your_meraki_api_key_here"
 fastmcp run meraki_mcp/main.py:mcp
 ```
 
+FastMCP CLI quick reference:
+
+```
+# Linux/macOS (bash/zsh)
+export MERAKI_API_KEY="your_meraki_api_key_here"
+fastmcp run meraki_mcp/main.py:mcp
+
+# Windows PowerShell
+$env:MERAKI_API_KEY = "your_meraki_api_key_here"
+fastmcp run meraki_mcp/main.py:mcp
+
+# Alternative explicit object format (equivalent)
+fastmcp run meraki_mcp/main.py:mcp
+```
+
+Troubleshooting:
+- If you see "Already running asyncio in this thread", stop any previous instance and run again:
+  - macOS/Linux: `pkill -f "fastmcp run.*meraki_mcp/main.py" || true`
+  - Windows: Stop the prior terminal/process that’s running FastMCP
+
 ### 3) Connect a client
 
 - Claude Desktop: Settings → Developer → Edit Config, add a server pointing to the command above.
