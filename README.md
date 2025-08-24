@@ -1,5 +1,7 @@
 # Meraki MCP
 
+[![CI](https://github.com/merakimiles/mcp-server/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/merakimiles/mcp-server/actions/workflows/ci.yml)
+
 A powerful Model Context Protocol (MCP) server that provides dynamic access to the entire Meraki Dashboard API plus advanced compliance and security auditing capabilities. Instead of creating hundreds of individual tools, Meraki MCP uses intelligent discovery to find and execute any Meraki API endpoint on demand.
 
 ## 🚀 Features
@@ -440,6 +442,14 @@ Key practices we follow and recommend:
 - Use secure networks in production deployments
 
 ---
+
+## 🤝 Contributing
+
+- Start here: see `AGENTS.md` for project structure, commands, style, and testing.
+- Use Conventional Commits (`feat:`, `fix:`, `docs:`, etc.).
+- Ensure CI passes: `ruff`, `mypy`, and unit `pytest`.
+- Integration tests are opt-in: `MERAKI_API_KEY=... pytest -m integration -q`.
+- PRs use the template in `.github/pull_request_template.md` and must link issues when applicable.
 
 ## 🚧 Roadmap / Improvements
 
