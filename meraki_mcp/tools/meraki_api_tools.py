@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Tuple
 from mcp.server.fastmcp import FastMCP
 
 from meraki_mcp.services.meraki_client import MerakiClient
+from meraki_mcp.settings import ApiSettings
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +17,14 @@ logger = logging.getLogger(__name__)
 class MerakiApiTools:
     """Dynamic tool class that can discover and execute any Meraki API endpoint"""
 
-    def __init__(self, mcp: FastMCP, meraki_client: MerakiClient, enabled: bool):
+    def __init__(self, mcp: FastMCP, meraki_client: MerakiClient, enabled: bool, settings: ApiSettings | None = None):
         self.mcp = mcp
         self.meraki_client = meraki_client
+        self.settings = settings or ApiSettings()
         self._api_cache: Dict[str, List[str]] = {}
         self._device_cache: Dict[str, Dict] = {}
         self._response_cache: Dict[str, Dict] = {}
-        self._cache_ttl = 300
+        self._cache_ttl = int(self.settings.CACHE_TTL_SECONDS)
         self._search_patterns: List[Dict] = []
         self._patterns_initialized = False
         self.enabled = enabled
@@ -30,6 +32,58 @@ class MerakiApiTools:
             self._register_tools()
         else:
             logger.info("MerakiApiTools not registered (MERAKI_API_KEY not set)")
+
+    # ----- Safety and policy helpers -----
+    def _is_mutating(self, method: str) -> bool:
+        m = method.lower()
+        return m.startswith("create") or m.startswith("update") or m.startswith("delete")
+
+    def _is_allowed(self, section: str, method: str) -> tuple[bool, str | None]:
+        # deny lists take precedence
+        if section in set(self.settings.DENY_SECTIONS):
+            return False, f"Section '{section}' is denied by policy"
+        if method in set(self.settings.DENY_METHODS) or f"{section}.{method}" in set(self.settings.DENY_METHODS):
+            return False, f"Method '{section}.{method}' is denied by policy"
+        # allow lists (if present) restrict surface
+        has_allow_sections = bool(self.settings.ALLOW_SECTIONS)
+        has_allow_methods = bool(self.settings.ALLOW_METHODS)
+        if has_allow_sections and section not in set(self.settings.ALLOW_SECTIONS):
+            return False, f"Section '{section}' not in ALLOW_SECTIONS"
+        if has_allow_methods and not (method in set(self.settings.ALLOW_METHODS) or f"{section}.{method}" in set(self.settings.ALLOW_METHODS)):
+            return False, f"Method '{section}.{method}' not in ALLOW_METHODS"
+        return True, None
+
+    def _apply_rate_guards(self, params: Dict) -> Dict:
+        capped = dict(params)
+        for key in ("perPage", "per_page"):
+            if key in capped:
+                try:
+                    capped[key] = min(int(capped[key]), int(self.settings.MAX_PER_PAGE))
+                except Exception:
+                    pass
+        if "timespan" in capped:
+            try:
+                capped["timespan"] = min(int(capped["timespan"]), int(self.settings.MAX_TIMESPAN))
+            except Exception:
+                pass
+        return capped
+
+    def _redact(self, data):
+        keys = set(k.lower() for k in self.settings.REDACT_KEYS)
+        def _walk(obj):
+            if isinstance(obj, dict):
+                out = {}
+                for k, v in obj.items():
+                    if k.lower() in keys and isinstance(v, (str, int, float)):
+                        out[k] = "***REDACTED***"
+                    else:
+                        out[k] = _walk(v)
+                return out
+            elif isinstance(obj, list):
+                return [_walk(x) for x in obj]
+            else:
+                return obj
+        return _walk(data)
 
     def _generate_keywords_from_method(self, section: str, method: str) -> List[str]:
         """Generate semantic keywords from section and method names"""
@@ -510,11 +564,20 @@ class MerakiApiTools:
                 kwargs=kwargs,
             )
 
-            if method.startswith("get") and cache_key in self._response_cache:
+            if (not self.settings.DISABLE_RESPONSE_CACHE) and method.startswith("get") and cache_key in self._response_cache:
                 cache_entry = self._response_cache[cache_key]
                 if self._is_cache_valid(cache_entry):
                     logger.info(f"Cache hit for {section}.{method}")
                     return cache_entry["response"]
+            # Policy checks (allow/deny + mutation guards)
+            ok, reason = self._is_allowed(section, method)
+            if not ok:
+                return json.dumps({
+                    "error": "execution blocked",
+                    "reason": reason,
+                    "section": section,
+                    "method": method,
+                }, indent=2)
 
             def _call_api():
                 dashboard = self.meraki_client.get_dashboard()
@@ -539,6 +602,14 @@ class MerakiApiTools:
                 filtered_params = {
                     k: v for k, v in all_params.items() if v is not None and v != ""
                 }
+                # Mutation guard
+                if self._is_mutating(method):
+                    if not self.settings.ALLOW_MUTATIONS:
+                        raise PermissionError("Mutations are disabled by policy (ALLOW_MUTATIONS=false)")
+                    if self.settings.REQUIRE_CONFIRM_FOR_MUTATIONS and not bool(filtered_params.get("confirm")):
+                        raise PermissionError("Confirm flag required for mutations (provide 'confirm': true)")
+                # Guard parameter sizes
+                filtered_params = self._apply_rate_guards(filtered_params)
 
                 sig = inspect.signature(method_obj)
                 missing_params = []
@@ -560,9 +631,9 @@ class MerakiApiTools:
 
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(None, _call_api)
-
-            response_json = json.dumps(result, indent=2, default=str)
-            if method.startswith("get"):
+            safe_result = self._redact(result)
+            response_json = json.dumps(safe_result, indent=2, default=str)
+            if (not self.settings.DISABLE_RESPONSE_CACHE) and method.startswith("get"):
                 self._response_cache[cache_key] = {
                     "response": response_json,
                     "timestamp": time.time(),

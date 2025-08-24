@@ -7,7 +7,7 @@ MYPY=$(VENV)/bin/mypy
 FASTMCP=$(VENV)/bin/fastmcp
 PRECOMMIT=$(VENV)/bin/pre-commit
 
-.PHONY: init test test-integration lint format type hooks run clean
+.PHONY: init test test-integration lint format type hooks run coverage clean
 
 $(VENV)/bin/python:
 	python3.12 -m venv $(VENV)
@@ -19,6 +19,9 @@ init: $(VENV)/bin/python
 
 test: $(VENV)/bin/python
 	$(PYTEST)
+
+coverage: $(VENV)/bin/python
+	$(PYTEST) --cov=meraki_mcp --cov-report=term-missing --cov-fail-under=60
 
 test-integration: $(VENV)/bin/python
 	$(PYTEST) -m integration -q
@@ -42,4 +45,3 @@ run: $(VENV)/bin/python
 
 clean:
 	rm -rf $(VENV) .pytest_cache .ruff_cache .mypy_cache
-

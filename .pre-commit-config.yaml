@@ -4,9 +4,14 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-toml
+      - id: check-yaml
+      - id: check-json
       - id: detect-aws-credentials
         args: [ --allow-missing-credentials ]
       - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.

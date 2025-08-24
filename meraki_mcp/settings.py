@@ -8,6 +8,16 @@ class ApiSettings(BaseSettings):
     CACHE_TTL_SECONDS: int = 300
     DISABLE_RESPONSE_CACHE: bool = False
     MCP_LOG_SECTIONS: bool = False
+    # Mutation and surface controls
+    ALLOW_MUTATIONS: bool = False
+    REQUIRE_CONFIRM_FOR_MUTATIONS: bool = True
+    ALLOW_SECTIONS: list[str] = []
+    ALLOW_METHODS: list[str] = []  # format: section.method or just method
+    DENY_SECTIONS: list[str] = []
+    DENY_METHODS: list[str] = []   # format: section.method or just method
+    # Guardrails
+    MAX_PER_PAGE: int = 500
+    MAX_TIMESPAN: int = 86400
     REDACT_KEYS: list[str] = [
         "psk",
         "password",

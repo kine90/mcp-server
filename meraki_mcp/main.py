@@ -16,7 +16,9 @@ mcp: FastMCP = FastMCP("Meraki MCP")
 
 meraki_client = MerakiClient(api_key=env.MERAKI_API_KEY)
 
-meraki_api_tools = MerakiApiTools(mcp, meraki_client, enabled=bool(env.MERAKI_API_KEY))
+meraki_api_tools = MerakiApiTools(
+    mcp, meraki_client, enabled=bool(env.MERAKI_API_KEY), settings=env
+)
 meraki_complex_api_tools = MerakiComplexApiTools(
     mcp, meraki_client, enabled=bool(env.MERAKI_API_KEY)
 )
@@ -25,7 +27,7 @@ commonly_used_meraki_api_tools = CommonlyUsedMerakiApiTools(
 )
 
 
-if __name__ == "__main__":
+def main():
     # Log Meraki SDK version and available top-level sections for visibility
     try:
         dashboard = meraki_client.get_dashboard()
@@ -47,3 +49,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"Unable to enumerate Meraki API sections at startup: {e}")
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()
