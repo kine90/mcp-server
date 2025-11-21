@@ -111,7 +111,8 @@ Note: Ensure your Meraki API key belongs to a licensed organization for network-
 
 - Docker installed and running
 - Meraki Dashboard API key ([Get one here](https://documentation.meraki.com/General_Administration/Other_Topics/Cisco_Meraki_Dashboard_API))
- 
+
+> **💡 For Cursor IDE users on macOS**: See the [Cursor IDE Setup](#-setup-for-cursor-ide-with-secure-keychain-storage) section for secure Keychain-based API key storage instead of environment variables.
 
 ### 2. Deploy the Server
 
@@ -184,6 +185,132 @@ Once Claude Desktop restarts, test your setup:
 ```
 
 The `--pull=always` flag ensures you automatically get the latest features and security updates without manual intervention.
+
+## 🎯 Setup for Cursor IDE (with Secure Keychain Storage)
+
+This section explains how to securely configure the Meraki MCP server in Cursor IDE using macOS Keychain for API key storage.
+
+### Prerequisites
+
+- Cursor IDE installed
+- Docker installed and running
+- macOS (for Keychain support)
+- A Meraki Dashboard API key
+
+### Secure Setup Steps
+
+#### 1. Store API Key in macOS Keychain
+
+Use the provided setup script to securely store your API key:
+
+```bash
+chmod +x setup_meraki_api_key.sh
+./setup_meraki_api_key.sh
+```
+
+This script will:
+- Prompt you for your Meraki API key (input is hidden)
+- Store it securely in macOS Keychain
+- Provide instructions for exporting it to your shell
+
+Alternatively, store it manually:
+
+```bash
+security add-generic-password \
+    -a "meraki-mcp" \
+    -s "MERAKI_API_KEY" \
+    -w "your_actual_api_key_here" \
+    -U
+```
+
+#### 2. Build the Docker Image
+
+Build the Docker image from source:
+
+```bash
+docker build -t meraki-mcp:latest .
+```
+
+#### 3. Configure Cursor MCP
+
+Create the MCP configuration file at `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "Meraki MCP": {
+      "command": "/absolute/path/to/repo/meraki-mcp-docker.sh",
+      "args": []
+    }
+  }
+}
+```
+
+**Important:** Replace `/absolute/path/to/repo/` with the actual path to your cloned repository.
+
+The `meraki-mcp-docker.sh` wrapper script will:
+- Retrieve your API key from Keychain
+- Pass it securely to the Docker container
+- Start the MCP server with proper configuration
+
+#### 4. Set Up Shell Environment (Optional)
+
+For terminal usage, add this to your `~/.zshrc` (or `~/.bash_profile`):
+
+```bash
+# Load Meraki API Key from Keychain
+export MERAKI_API_KEY=$(security find-generic-password -a "meraki-mcp" -s "MERAKI_API_KEY" -w 2>/dev/null)
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc
+```
+
+#### 5. Restart Cursor
+
+1. Quit Cursor completely (Cmd+Q)
+2. Reopen Cursor
+3. Go to Settings → Tools & MCP
+4. Verify "Meraki MCP" appears under "Installed MCP Servers"
+
+### Security Benefits
+
+✅ **No Hardcoded Keys**: API keys are never stored in configuration files  
+✅ **Keychain Encryption**: Keys are encrypted by macOS Keychain  
+✅ **Automatic Retrieval**: Wrapper script retrieves keys securely at runtime  
+✅ **No Version Control Risk**: Keys are excluded from git repositories  
+✅ **Easy Rotation**: Update keys in Keychain without changing config files  
+
+### Troubleshooting
+
+**Container exits immediately:**
+- Verify the Docker image is built: `docker images | grep meraki-mcp`
+- Check wrapper script is executable: `chmod +x meraki-mcp-docker.sh`
+- Test manually: `./meraki-mcp-docker.sh`
+
+**API key not found:**
+- Verify key exists: `security find-generic-password -a "meraki-mcp" -s "MERAKI_API_KEY"`
+- Re-run setup script if needed
+
+**Cursor doesn't see MCP server:**
+- Verify config file location: `~/.cursor/mcp.json`
+- Check file permissions: `chmod 600 ~/.cursor/mcp.json`
+- Ensure absolute path in config is correct
+- Restart Cursor completely
+
+**Multiple containers running:**
+- This is normal - Cursor may maintain multiple MCP connections
+- Containers auto-stop when Cursor disconnects (due to `--rm` flag)
+- To manually stop: `docker stop $(docker ps -q --filter "ancestor=meraki-mcp")`
+
+### Files Created
+
+- `setup_meraki_api_key.sh` - Interactive script to store API key in Keychain
+- `get_meraki_api_key.sh` - Helper script to retrieve key from Keychain
+- `meraki-mcp-docker.sh` - Wrapper script that retrieves key and runs Docker container
+- `~/.cursor/mcp.json` - Cursor MCP configuration file
 
 ## 📖 Usage Examples
 
@@ -437,9 +564,26 @@ Key practices we follow and recommend:
 
 - Never commit API keys to version control
 - Use environment variables or secure secret management
+- **For macOS users**: Use Keychain for secure API key storage (see Cursor setup section above)
 - Scan Docker images for vulnerabilities in production
 - Set appropriate resource limits for containers
 - Use secure networks in production deployments
+
+### **Secure API Key Storage (macOS)**
+
+For Cursor IDE users on macOS, we provide scripts to store API keys securely in macOS Keychain:
+
+- `setup_meraki_api_key.sh` - Stores your API key in Keychain
+- `get_meraki_api_key.sh` - Retrieves key from Keychain
+- `meraki-mcp-docker.sh` - Wrapper script that uses Keychain-stored keys
+
+This approach ensures:
+- Keys are encrypted by macOS Keychain
+- No keys in configuration files or environment variables
+- Easy key rotation without changing configs
+- Protection against accidental exposure
+
+See the [Cursor IDE Setup](#-setup-for-cursor-ide-with-secure-keychain-storage) section for detailed instructions.
 
 ---
 
