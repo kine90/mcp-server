@@ -15,11 +15,14 @@ COPY meraki_mcp/ ./meraki_mcp/
 # Install dependencies
 RUN uv sync --frozen
 
+# Fix permissions for appuser
+RUN chown -R appuser:appuser /app
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 USER appuser
 
-# Run the MCP server
-CMD ["uv", "run", "python", "-m", "meraki_mcp.main"]
+# Run the MCP server using FastMCP CLI
+CMD ["uv", "run", "fastmcp", "run", "meraki_mcp/main.py:mcp"]

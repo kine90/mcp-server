@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "Meraki MCP": {
+            "command": "/Users/marco.chinello/GitHub/mcp-server/meraki-mcp-docker.sh",
+            "args": []
+        }
+    }
+}
