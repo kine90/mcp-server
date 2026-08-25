@@ -13,12 +13,13 @@ if [ -z "$API_KEY" ]; then
     exit 1
 fi
 
-# Run Docker with the API key
+# Run Docker with the API key and optional environment variables
 # Using local image (built from source)
 exec docker run \
     -i \
     --rm \
     -e "MERAKI_API_KEY=$API_KEY" \
+    ${ALLOW_MUTATIONS:+-e "ALLOW_MUTATIONS=$ALLOW_MUTATIONS"} \
     meraki-mcp:latest \
     "$@"
 
